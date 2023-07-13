@@ -1,0 +1,56 @@
+services:
+  ultrafeeder:
+    image: ghcr.io/sdr-enthusiasts/docker-adsb-ultrafeeder
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+    ports:
+      - 8080:80
+    environment:
+      - LOGLEVEL=error
+      - TZ=${FEEDER_TZ}
+      - BEASTHOST=host.docker.internal
+      - BEASTPORT=30005
+      # --------------------------------------------------
+      # SDR related parameters:
+      #
+      # --------------------------------------------------
+      # readsb/decoder parameters:
+      - READSB_LAT=${FEEDER_LAT}
+      - READSB_LON=${FEEDER_LONG}
+      - READSB_ALT=${FEEDER_ALT_M}m
+      - READSB_MODEAC=true
+      - READSB_RX_LOCATION_ACCURACY=2
+      - READSB_STATS_RANGE=true
+      #
+      # --------------------------------------------------
+      # Sources and Aggregator connections:
+      # Notes - remove the ones you are not using / feeding
+      #       - remove "adsb,dump978,30978,uat_in;" if you don't have dump978 and a UAT dongle connected to your station
+      #       - !!! make sure that each line ends with a semicolon ";",  with the exception of the last line which shouldn't have a ";" !!!
+      - ULTRAFEEDER_CONFIG=
+          adsb,in.adsb.lol,30004,beast_reduce_plus_out;
+          mlat,in.adsb.lol,31090,39001;--privacy
+      - UUID=${FEEDER_UUID}
+      - MLAT_USER=${FEEDER_NAME}
+      #
+      # --------------------------------------------------
+      # TAR1090 (Map Web Page) parameters:
+      - UPDATE_TAR1090=true
+      - TAR1090_DEFAULTCENTERLAT=${FEEDER_LAT}
+      - TAR1090_DEFAULTCENTERLON=${FEEDER_LONG}
+      - TAR1090_MESSAGERATEINTITLE=true
+      - TAR1090_PAGETITLE=${FEEDER_NAME}
+      - TAR1090_PLANECOUNTINTITLE=true
+      - TAR1090_ENABLE_AC_DB=true
+      - TAR1090_FLIGHTAWARELINKS=true
+      - TAR1090_SITESHOW=true
+      - TAR1090_RANGE_OUTLINE_COLORED_BY_ALTITUDE=true
+      - TAR1090_RANGE_OUTLINE_WIDTH=2.0
+      - TAR1090_RANGERINGSDISTANCES=50,100,150,200
+      - TAR1090_RANGERINGSCOLORS='#1A237E','#0D47A1','#42A5F5','#64B5F6'
+      - TAR1090_USEROUTEAPI=true
+      - GRAPHS1090_DARKMODE=true
+    tmpfs:
+      - /run:exec,size=256M
+      - /tmp:size=128M
+      - /var/log:size=32M
